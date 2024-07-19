@@ -1,0 +1,153 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
+
+public class TaskManager {
+    // GUI components
+    private JFrame frame;
+    private JTextField taskTitleField;
+    private JTextArea taskDescriptionField;
+    private JButton addButton;
+    private JButton updateButton;
+    private JButton deleteButton;
+    private JButton viewAllButton;
+    private JButton viewCompletedButton;
+    private JButton viewPendingButton;
+    private JTable taskTable;
+    private DefaultTableModel taskTableModel;
+
+    // Task data
+    private List<Task> tasks;
+    private File taskFile;
+
+    public TaskManager() {
+        // Initialize GUI components
+        frame = new JFrame("Task Manager");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+
+        // Create task input panel
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(2, 2));
+        inputPanel.add(new JLabel("Task Title:"));
+        taskTitleField = new JTextField();
+        inputPanel.add(taskTitleField);
+        inputPanel.add(new JLabel("Task Description:"));
+        taskDescriptionField = new JTextArea(5, 20);
+        inputPanel.add(new JScrollPane(taskDescriptionField));
+
+        // Create button panel
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout());
+        addButton = new JButton("Add Task");
+        addButton.addActionListener(new AddTaskListener());
+        buttonPanel.add(addButton);
+        updateButton = new JButton("Update Task");
+        updateButton.addActionListener(new UpdateTaskListener());
+        buttonPanel.add(updateButton);
+        deleteButton = new JButton("Delete Task");
+        deleteButton.addActionListener(new DeleteTaskListener());
+        buttonPanel.add(deleteButton);
+        viewAllButton = new JButton("View All Tasks");
+        viewAllButton.addActionListener(new ViewAllTasksListener());
+        buttonPanel.add(viewAllButton);
+        viewCompletedButton = new JButton("View Completed Tasks");
+        viewCompletedButton.addActionListener(new ViewCompletedTasksListener());
+        buttonPanel.add(viewCompletedButton);
+        viewPendingButton = new JButton("View Pending Tasks");
+        viewPendingButton.addActionListener(new ViewPendingTasksListener());
+        buttonPanel.add(viewPendingButton);
+
+        // Create task table
+        taskTableModel = new DefaultTableModel(new String[] {"ID", "Title", "Description", "Status"}, 0);
+        taskTable = new JTable(taskTableModel);
+        taskTable.setPreferredScrollableViewportSize(new Dimension(500, 300));
+        taskTable.setFillsViewportHeight(true);
+
+        // Add components to frame
+        frame.add(inputPanel, BorderLayout.NORTH);
+        frame.add(buttonPanel, BorderLayout.CENTER);
+        frame.add(new JScrollPane(taskTable), BorderLayout.SOUTH);
+
+        // Initialize task data
+        tasks = new ArrayList<>();
+        taskFile = new File("tasks.txt");
+
+        // Load task data from file
+        loadTasksFromFile();
+
+        // Set frame size and visibility
+        frame.setSize(600, 400);
+        frame.setVisible(true);
+    }
+
+    // Task class
+    public static class Task {
+        private int id;
+        private String title;
+        private String description;
+        private boolean completed;
+
+        public Task(int id, String title, String description, boolean completed) {
+            this.id = id;
+            this.title = title;
+            this.description = description;
+            this.completed = completed;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public boolean isCompleted() {
+            return completed;
+        }
+
+        public void setCompleted(boolean completed) {
+            this.completed = completed;
+        }
+    }
+
+    // Load tasks from file
+    private void loadTasksFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(taskFile))) {
+            String line;
+            while ((line = reader.readLine())!= null) {
+                String[] parts = line.split(",");
+                int id = Integer.parseInt(parts[0]);
+                String title = parts[1];
+                String description = parts[2];
+                boolean completed = Boolean.parseBoolean(parts[3]);
+                tasks.add(new Task(id, title, description, completed));
+            }
+        } catch (IOException e) {
+            System.err.println("Error loading tasks from file: " + e.getMessage());
+        }
+    }
+
+    // Save tasks to file
+    private void saveTasksToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(taskFile))) {
+            for (Task task : tasks) {
+                writer.write(task.getId() + "," + task.getTitle() + "," + task.getDescription() + "," + task.isCompleted() + "\n");
+            }
+        } catch (IOException e) {
+            System.err.println("Error saving tasks to file: " + e.getMessage());
+        }
+    }
+
+    // Add task listener
+    private class AddTaskListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String title = task
